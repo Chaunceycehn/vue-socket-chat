@@ -3,7 +3,7 @@
     <div class="container">
       <div class="row">
         <div class="col-md-6 offset-md-3">
-          <Chat/>
+          <!-- <Chat/> -->
           <loading/>
           <!-- <Header/> -->
           <Room/>
@@ -29,5 +29,8 @@ export default {
 };
 </script>
 
-<style>
+<style lang="less">
+#app{
+  background-color: #f0f0f0;
+}
 </style>
