@@ -18,7 +18,7 @@
             </div>
             <div class="center">
               <div class="user">{{ item.msgUser.userName }}</div>
-              <div class="text">
+              <div class="text" id="text">
                 <span class="horn">◀</span>
                 {{ item.msg }}
               </div>
@@ -40,9 +40,10 @@
             </div>
             <div class="center">
               <div class="user">{{ item.msgUser.userName }}</div>
-              <div class="text">
+              <div class="text" id="text">
                 <span class="horn">▶</span>
                 {{ item.msg }}
+              
               </div>
             </div>
             <br style="clear: both;">
@@ -54,6 +55,9 @@
       </div>
     </div>
     <button @click="connectEvent">login</button>
+    <button @click="sendImg">发送图片</button>
+    <input type="file" id="tupian">
+
     <div class="footer">
       <div class="main">
         <input
@@ -97,7 +101,8 @@ export default {
       messageList: [],
       inputValue: "",
       connectState: false,
-      socket: io("localhost:3001")
+      socket: io("localhost:3001"),
+      ImgidList: [],
     };
   },
   created() {
@@ -143,6 +148,17 @@ export default {
         me.onlineUserList = obj.onlineUserList;
         me.messageList.push({ type: 2, msg: obj.msg, msgUser: obj.user });
       });
+      this.socket.on("receiveImg", data => {
+        let ImgDIV = document.createElement("div");
+        let text = document.getElementById("text");
+        let newtext = text.lastChild
+        ImgDIV.innerHTML = `<div>${data.id}: <img style="width=100px; height:100px ;" " src="${data.img}" /></div>`;
+        // me.ImgidList.push(data.img);
+        // console.log(me.ImgidList);
+        // newtext.appendChild(ImgDIV);
+        text.appendChild(ImgDIV);
+        // console.log(data);
+      });
     },
     getUserId() {
       return (
@@ -165,6 +181,18 @@ export default {
           this.inputValue = "";
         }
       }
+    },
+    sendImg() {
+      let that = this;
+      let Imginput = document.getElementById("tupian");
+      let file = Imginput.files[0]; //得到该图片
+      let reader = new FileReader(); //创建一个FileReader对象，进行下一步的操作
+      reader.readAsDataURL(file); //通过readAsDataURL读取图片
+      reader.onload = function(event) {
+        //读取完毕会自动触发，读取结果保存在result中
+        let data = { img: event.target.result };
+        that.socket.emit("sendImg", data);
+      };
     },
     trim(s) {
       return s.replace(/(^\s*)|(\s*$)/g, "");
@@ -301,6 +329,7 @@ export default {
       li {
         width: 25%;
         display: inline-block;
+        
         .box {
           width: 80%;
           margin: 0 auto;

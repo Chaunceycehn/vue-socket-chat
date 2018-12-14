@@ -64,6 +64,11 @@ io.on('connection', function (socket) {
         this.broadcast.emit('message', obj); // 广播给自己以外的所有用户
         console.log(obj.user.userName + '说：' + obj.msg);
     });
+
+    socket.on('sendImg', (data) => {
+        data.id = socket.id;
+        io.emit('receiveImg', data);
+    })
     socket.on('SEND_MESSAGE', function (data) {
         io.emit('MESSAGE', data)
     });
