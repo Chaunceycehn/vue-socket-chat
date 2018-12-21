@@ -2,7 +2,7 @@
   <div class="app-main">
     <div class="content" ref="scroll">
       <div class="height-hook">
-        <div v-for="(item, index) in messageList">
+        <div v-for="(item, index) in messageList" :key="index">
           <div class="item-box left-hook" v-if="item.type === 2">
             <div class="left">
               <img src="../../images/1.png" v-if="item.msgUser.userImg === 1">
@@ -18,8 +18,12 @@
             </div>
             <div class="center">
               <div class="user">{{ item.msgUser.userName }}</div>
-              <div class="text" id="text">
-                <span class="horn">◀</span>
+              <div class="text" id="text" v-if="item.tag">
+                <span class="horn">▶</span>
+                <img :src="item.msg">
+              </div>
+              <div class="text" id="text" v-else>
+                <span class="horn">▶</span>
                 {{ item.msg }}
               </div>
             </div>
@@ -40,10 +44,13 @@
             </div>
             <div class="center">
               <div class="user">{{ item.msgUser.userName }}</div>
-              <div class="text" id="text">
+              <div class="text" id="text" v-if="item.tag">
+                <span class="horn">▶</span>
+                <img :src="item.msg">
+              </div>
+              <div class="text" id="text" v-else>
                 <span class="horn">▶</span>
                 {{ item.msg }}
-              
               </div>
             </div>
             <br style="clear: both;">
@@ -102,12 +109,12 @@ export default {
       inputValue: "",
       connectState: false,
       socket: io("localhost:3001"),
-      ImgidList: [],
+      ImgidList: []
     };
   },
   created() {
     this.userInfo = {};
-    this.messageList = []; // type = 1 提示信息     type = 2 对方内容     type = 3 我发送内容
+    this.messageList = []; // type = 1 提示信息     type = 2 对方内容     type = 3 我发送内容   type = 4 图片
   },
   mounted() {
     this.connectEvent();
@@ -126,7 +133,7 @@ export default {
       };
       this.socket.emit("login", this.userInfo);
       this.socket.on("login", function(obj) {
-        console.log(obj);
+        // console.log(obj);
         me.onlineUserList = obj.onlineUserList;
         me.messageList.push({
           type: 1,
@@ -140,23 +147,29 @@ export default {
           me.onlineUserList = obj.onlineUserList;
           me.connectState = true; // 登录状态
           me.headerConfig.left = me.userInfo.userImg.toString();
-          console.log("连接好了");
+          // console.log("连接好了");
         }
       });
       this.socket.on("message", function(obj) {
-        console.log(obj);
         me.onlineUserList = obj.onlineUserList;
         me.messageList.push({ type: 2, msg: obj.msg, msgUser: obj.user });
       });
-      this.socket.on("receiveImg", data => {
-        let ImgDIV = document.createElement("div");
-        let text = document.getElementById("text");
-        let newtext = text.lastChild
-        ImgDIV.innerHTML = `<div>${data.id}: <img style="width=100px; height:100px ;" " src="${data.img}" /></div>`;
+
+      this.socket.on("receiveImg", function(data) {
+        me.onlineUserList = data.onlineUserList;
+        me.messageList.push({ type: 2, msg: data.msg, msgUser: data.user,tag: "Image" });
+        // let ImgDIV = document.createElement("div");
+        // let text = document.getElementById("text");
+        // let newtext = text.lastChild
+        // ImgDIV.innerHTML = `<div>${
+        //   data.id
+        // }: <img style="width=100px; height:100px ;" " src="${
+        //   data.img
+        // }" /></div>`;
         // me.ImgidList.push(data.img);
         // console.log(me.ImgidList);
         // newtext.appendChild(ImgDIV);
-        text.appendChild(ImgDIV);
+        // text.appendChild(ImgDIV);
         // console.log(data);
       });
     },
@@ -191,7 +204,17 @@ export default {
       reader.onload = function(event) {
         //读取完毕会自动触发，读取结果保存在result中
         let data = { img: event.target.result };
-        that.socket.emit("sendImg", data);
+        that.socket.emit("sendImg", {
+          msg: data.img,
+          user: that.userInfo,
+          tag: "Image"
+        });
+        that.messageList.push({
+          type: 3,
+          msg: data.img,
+          msgUser: that.userInfo,
+          tag: "Image"
+        });
       };
     },
     trim(s) {
@@ -329,7 +352,7 @@ export default {
       li {
         width: 25%;
         display: inline-block;
-        
+
         .box {
           width: 80%;
           margin: 0 auto;

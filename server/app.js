@@ -65,10 +65,13 @@ io.on('connection', function (socket) {
         console.log(obj.user.userName + '说：' + obj.msg);
     });
 
-    socket.on('sendImg', (data) => {
-        data.id = socket.id;
-        io.emit('receiveImg', data);
+    socket.on('sendImg', function (data) {
+        data.onlineUserList = onlineUserList;
+        this.broadcast.emit('receiveImg', data);
+        console.log(data.tag);
+        console.log(data.user.userName + '发送图片：' + data);
     })
+
     socket.on('SEND_MESSAGE', function (data) {
         io.emit('MESSAGE', data)
     });
